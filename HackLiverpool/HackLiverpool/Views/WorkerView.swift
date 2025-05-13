@@ -1,175 +1,190 @@
 import SwiftUI
 
 struct WorkerView: View {
-    @State private var isAttending: Bool = false // Estado para controlar si se está atendiendo
+    @State private var isAttending: Bool = false
     @State private var isFinished: Bool = false
-    @State private var circleScale: CGFloat = 1.0 // Estado para controlar la escala del círculo
-    @State private var animateCircle: Bool = false // Estado para activar la animación
-    @State var clientname: String // Variable para el nombre del cliente
-    @State var profileImage: String // Nombre del asset de la imagen
+    @State var clientname: String
+    @State var profileImage: String
     @State private var isBusy: Bool = false
 
     var body: some View {
-        ZStack(alignment: .topLeading) { // Alineamos los elementos a la esquina superior izquierda para la minimizada
-            // Fondo inicial rosa
+        ZStack(alignment: .topLeading) {
             Color.liverpoolPink
                 .edgesIgnoringSafeArea(.all)
-            if isBusy{
+            if isBusy {
                 LiverpoolView(isBusy: $isBusy)
-            }else{
-            VStack(spacing: 0) { // Reducimos el spacing
-                VStack(spacing: 100) { // Contenedor para nombre e imagen con fondo rosa reducido
-                    // Nombre del cliente
-                    Text(clientname)
-                        .font(isFinished ? .largeTitle : (isAttending ? .title : .largeTitle)) // Cambia el tamaño de la fuente
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .bold()
-                        .lineLimit(1) // Asegura que el nombre no se extienda horizontalmente
-                    // Imagen de perfil
-                    Image(profileImage)
-                        .resizable()
-                        .scaledToFit()
-                        .scaledToFill()
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                        .frame(width: isAttending ? 150 : 250, height: isAttending&&isFinished ? 300 : 100) // Cambia el tamaño del frame
-                        .padding()
-                    if !isFinished && !isAttending || isAttending && !isFinished {
-                        ItemView(isAttending: $isAttending, isFinished: $isFinished)
-
-                    } else if isFinished {
-                        Text("¡Listo!") // Puedes reemplazar esto con tu animación de Lottie si lo prefieres
-                            .font(.largeTitle)
+            } else {
+                VStack() {
+                    VStack(spacing: 60) {
+                        Text(clientname)
+                            .font(
+                                isFinished ?
+                                    .system(size: UIScreen.main.bounds.width * 0.1) :
+                                isAttending ?
+                                    .system(size: UIScreen.main.bounds.width * 0.075) :
+                                    .system(size: UIScreen.main.bounds.width * 0.1)
+                            )
+                            .fontWeight(.bold)
                             .foregroundColor(.white)
-                            .transition(.opacity)
                             .bold()
-                        Button("Siguiente cliente") {
-                            print("Siguiente Cliente")
-                            withAnimation { // Añadimos una animación para la transición
-                                isFinished = false // Cambiamos el estado al presionar "Apoyo finalizado"
-                                isAttending = false
-                                clientname = "Esteban"
-                                profileImage = "TestClient"
-                            }
+                            .lineLimit(1)
+
+                        GeometryReader { geometry in
+                            Image(profileImage)
+                                .resizable()
+                                .scaledToFill()
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                                .frame(
+                                    width: geometry.size.width * (isAttending ? 0.5 : 0.6), // La imagen ocupa el 40% del ancho si atendiendo, 60% sino
+                                    height: geometry.size.width * (isAttending ? 0.5 : 0.6) // Mantiene la proporción cuadrada
+                                )
+                                .padding()
+                                .frame(maxWidth: .infinity, maxHeight: .infinity) // Centra la imagen dentro del GeometryReader
                         }
-                        .padding()
-                        .background(Color.white)
-                        .foregroundColor(.liverpoolPink)
-                        .cornerRadius(10)
-                        .font(.title)                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .top) // Ocupar todo el ancho disponible para el fondo rosa reducido
-                .background(Color.liverpoolPink) // Fondo rosa alrededor del nombre e imagen
-                .padding(.top, isAttending ? UIScreen.main.bounds.height / 23 : UIScreen.main.bounds.height / 23) // Ajustar la posición inicial
-                .padding(.bottom, isAttending ? UIScreen.main.bounds.height / 28 : UIScreen.main.bounds.height / 28) // Ajustar la posición inicial
+                        .aspectRatio(1, contentMode: .fit) // Asegura que el GeometryReader sea cuadrado
 
-                Spacer() // Empuja el botón hacia abajo si la lista no está visible
-
-                if isAttending && !isFinished {
-                    Button("Apoyo finalizado") {
-                        print("Apoyo finalizado")
-                        withAnimation { // Añadimos una animación para la transición
-                            isFinished = true // Cambiamos el estado al presionar "Apoyo finalizado"
+                        if !isFinished && isAttending {
+                            ItemView(isAttending: $isAttending, isFinished: $isFinished)
+                                .frame(height: UIScreen.main.bounds.height * 0.3) // Altura relativa de la lista
+                        } else if isFinished {
+                            Text("¡Listo!")
+                                .font(.system(size: UIScreen.main.bounds.width * 0.08))
+                                .foregroundColor(.white)
+                                .transition(.opacity)
+                                .bold()
+                            Button("Siguiente cliente") {
+                                print("Siguiente Cliente")
+                                withAnimation {
+                                    isFinished = false
+                                    isAttending = false
+                                    clientname = "Esteban"
+                                    profileImage = "TestClient"
+                                }
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .foregroundColor(.liverpoolPink)
+                            .cornerRadius(10)
+                            .font(.system(size: UIScreen.main.bounds.width * 0.05))
                         }
                     }
-                    .padding()
-                    .background(Color.white)
-                    .foregroundColor(.liverpoolPink)
-                    .cornerRadius(10)
-                    .font(.title)
-                } else if !isAttending {
-                    HStack(spacing: 80) {
-                        Button("Atender") {
-                            print("Atender")
-                            withAnimation { // Añadimos una animación para la transición
-                                isAttending = true // Cambiamos el estado al presionar "Atender"
-                            }
-                        }
-                        .padding()
-                        .background(Color.white)
-                        .foregroundColor(.liverpoolPink)
-                        .cornerRadius(10)
-                        .font(.title)
+                    .frame(maxWidth: .infinity, alignment: .top)
+                    .background(Color.liverpoolPink)
+                    .padding(.top, isAttending ? UIScreen.main.bounds.height / 23 : UIScreen.main.bounds.height / 23)
+                    .padding(.bottom, isAttending ? UIScreen.main.bounds.height / 28 : UIScreen.main.bounds.height / 28)
 
-                        Button("Ocupado") { // Corrección del texto del segundo botón
-                            // Acción cuando el cliente está ocupado (aquí debería ser la acción del trabajador)
-                            print("Ocupado")
+                    Spacer()
+
+                    if isAttending && !isFinished {
+                        Button("Apoyo finalizado") {
+                            print("Apoyo finalizado")
                             withAnimation {
-                                isBusy = true
+                                isFinished = true
                             }
                         }
                         .padding()
                         .background(Color.white)
                         .foregroundColor(.liverpoolPink)
                         .cornerRadius(10)
-                        .font(.title)
+                        .font(.system(size: UIScreen.main.bounds.width * 0.05))
+                    } else if !isAttending && !isFinished {
+                        HStack(spacing: 80) {
+                            Spacer()
+                            Button("Atender") {
+                                print("Atender")
+                                withAnimation {
+                                    isAttending = true
+                                }
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .foregroundColor(.liverpoolPink)
+                            .cornerRadius(10)
+                            .font(.system(size: UIScreen.main.bounds.width * 0.05))
+                            .scaledToFill()
+
+                            Button("Ocupado") {
+                                print("Ocupado")
+                                withAnimation {
+                                    isBusy = true
+                                }
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .foregroundColor(.liverpoolPink)
+                            .cornerRadius(10)
+                            .font(.system(size: UIScreen.main.bounds.width * 0.05))
+                            .scaledToFill()
+                            Spacer()
+                        }
+                        .padding(.bottom)
                     }
-                    .padding(.bottom)
                 }
+                .frame(maxWidth: .infinity, alignment: .top)
             }
-            .frame(maxWidth: .infinity, alignment: .top) // Alineamos al top para la minimizada
         }
     }
 }
-    struct ItemView: View {
-        @Binding var isAttending: Bool
-        @Binding var isFinished: Bool
-        @State private var imageList: [ImageData] = [
-            ImageData(imageName: "LATTAFA", description: "Eau de parfum Yara para mujer", brand: "LATTAFA", barcode: "237454938223", comments: "100 mL"),
-            ImageData(imageName: "DIOR", description: "Eau de toilette Sauvage para hombre", brand: "DIOR", barcode: "234234123423", comments: "100 mL"),
-            ImageData(imageName: "HERMES", description: "Eau de parfum Terre d'Hermès para hombre", brand: "HERMÈS", barcode: "732641823643", comments: "75 mL"),
-            ImageData(imageName: "CHANEL", description: "CHANCE EAU SPLENDIDE", brand: "CHANEL", barcode: "731763249123", comments: "100 mL")
-        ]
-        var body: some View {
-            ScrollView(.horizontal) {
-                HStack(spacing: 20) {
-                    ForEach(imageList) { imageData in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Image(imageData.imageName)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 150, height: 150)
-                                    .cornerRadius(10)
-                                
-                                Text("Descripción: \(imageData.description)")
-                                    .font(.title3)
-                                    .foregroundColor(.black)
-                                    .lineLimit(3)
-                                Text("Marca: \(imageData.brand)")
-                                    .font(.title3)
-                                    .foregroundColor(.black)
-                                    .lineLimit(1)
-                                Text("Código de barras: \(imageData.barcode)")
-                                    .font(.title3)
-                                    .foregroundColor(.black)
-                                    .lineLimit(1)
-                                Text("Comentarios: \(imageData.comments)")
-                                    .font(.title3)
-                                    .foregroundColor(.black)
-                                    .lineLimit(3)
-                            }
-                            .frame(width: 300)
-                            if isAttending{
-                                Button {
-                                    if let index = imageList.firstIndex(where: { $0.id == imageData.id }) {
-                                        imageList.remove(at: index)
-                                    }
-                                } label: {
-                                    Image(systemName: "trash")
-                                        .foregroundColor(.red)
-                                        .font(.title)
+struct ItemView: View {
+    @Binding var isAttending: Bool
+    @Binding var isFinished: Bool
+    @State private var imageList: [ImageData] = [
+        ImageData(imageName: "LATTAFA", description: "Eau de parfum Yara para mujer", brand: "LATTAFA", barcode: "237454938223", comments: "100 mL"),
+        ImageData(imageName: "DIOR", description: "Eau de toilette Sauvage para hombre", brand: "DIOR", barcode: "234234123423", comments: "100 mL"),
+        ImageData(imageName: "HERMES", description: "Eau de parfum Terre d'Hermès para hombre", brand: "HERMÈS", barcode: "732641823643", comments: "75 mL"),
+        ImageData(imageName: "CHANEL", description: "CHANCE EAU SPLENDIDE", brand: "CHANEL", barcode: "731763249123", comments: "100 mL")
+    ]
+    var body: some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 20) {
+                ForEach(imageList) { imageData in
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Image(imageData.imageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: UIScreen.main.bounds.width * 0.5)
+                                .cornerRadius(10)
+
+                            Text("Descripción: \(imageData.description)")
+                                .font(.system(size: UIScreen.main.bounds.width * 0.025))
+                                .foregroundColor(.black)
+                                .lineLimit(3)
+                            Text("Marca: \(imageData.brand)")
+                                .font(.system(size: UIScreen.main.bounds.width * 0.025))
+                                .foregroundColor(.black)
+                                .lineLimit(1)
+                            Text("Código de barras: \(imageData.barcode)")
+                                .font(.system(size: UIScreen.main.bounds.width * 0.025))
+                                .foregroundColor(.black)
+                                .lineLimit(1)
+                            Text("Comentarios: \(imageData.comments)")
+                                .font(.system(size: UIScreen.main.bounds.width * 0.025))
+                                .foregroundColor(.black)
+                                .lineLimit(3)
+                        }
+                        .frame(width: UIScreen.main.bounds.width * 0.5)
+                        if isAttending {
+                            Button {
+                                if let index = imageList.firstIndex(where: { $0.id == imageData.id }) {
+                                    imageList.remove(at: index)
                                 }
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                                    .font(.system(size: UIScreen.main.bounds.width * 0.075))
                             }
                         }
                     }
                 }
             }
-            .frame(height: isAttending ? 350:300)
-            .scaledToFit()
-            .background(.white)
         }
+        .frame(height: isAttending ? UIScreen.main.bounds.width * 0.5 : UIScreen.main.bounds.width * 0.7)
+
+
+        .scaledToFit()
+        .background(.white)
     }
 }
 struct LiverpoolView: View {
@@ -178,15 +193,14 @@ struct LiverpoolView: View {
         ZStack {
             Color.liverpoolPink
                 .edgesIgnoringSafeArea(.all)
-            VStack{
+            VStack {
                 Text("Liverpool")
-                    .font(.system(size: 80))
+                    .font(.system(size: UIScreen.main.bounds.width * 0.2)) // Tamaño relativo al ancho de la pantalla
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                 Text("Es parte de tu vida")
-                    .font(.title)
-                    .fontWeight(.semibold)
+                    .font(.system(size: UIScreen.main.bounds.width * 0.05))                    .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                     .padding(.bottom)
@@ -201,9 +215,11 @@ struct LiverpoolView: View {
                 .background(Color.white)
                 .foregroundColor(.liverpoolPink)
                 .cornerRadius(10)
-                .font(.title)
-                
+                .font(.system(size: UIScreen.main.bounds.width * 0.04))
+                .scaledToFill()
+                .bold()
             }
+            .padding()
         }
     }
 }
